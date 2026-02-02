@@ -1,52 +1,15 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Put,
-  Delete,
-  Body,
-  Param,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+// users/users.controller.ts
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private service: UsersService) {}
 
-  // POST /users → 201
-  @Post()
+  @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() body: any) {
-    return this.usersService.create(body);
-  }
-
-  // GET /users → 200
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  // GET /users/:id → 200 or 404
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  // PUT /users/:id → 200 or 404
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  update(@Param('id') id: string, @Body() body: any) {
-    return this.usersService.update(id, body);
-  }
-
-  // DELETE /users/:id → 200 or 404
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  register(@Body() dto: CreateUserDto) {
+    return this.service.create(dto);
   }
 }
