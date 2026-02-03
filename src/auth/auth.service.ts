@@ -1,4 +1,3 @@
-// auth/auth.service.ts
 import {
   Injectable,
   UnauthorizedException,
@@ -18,23 +17,34 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        'Invalid email or password',
+      );
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password,
+    );
 
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        'Invalid email or password',
+      );
     }
-
-    const payload = {
-      sub: user.id,
-      role: user.role,
-    };
 
     return {
       message: 'Login successful',
-      token: this.jwtService.sign(payload),
+      token: this.generateToken(user),
     };
   }
+
+generateToken(user: { id: string; role: string }): string {
+  return this.jwtService.sign({
+    sub: user.id,
+    role: user.role,
+  });
+}
+
+
 }
