@@ -1,39 +1,51 @@
 import {
   Controller,
-  Post,
+  Get,
+  Put,
   Body,
-  HttpCode,
-  HttpStatus,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { AuthService } from '../auth/auth.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { GetUser } from '../common/decorators/get-user.decorator';
+import { User } from './entities/user.entity';
 
-@Controller('users')
-export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) { }
+@Controller('user')
+@UseGuards(JwtAuthGuard)
+export class UserController {
+  constructor(private usersService: UsersService) {}
 
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  async register(@Body() dto: CreateUserDto) {
-    // 1️⃣ user create
-    const user = await this.usersService.create(dto);
+  @Get('profile')
+  async getProfile(@GetUser() user: User) {
+    const userData = await this.usersService.findById(user.id);
+    return {
+      success: true,
+      data: userData,
+    };
+  }
 
-    // 2️⃣ auto login (token)
- const token = this.authService.generateToken({
-  id: user.id,     // ✅ string
-  role: user.role,
-});
-
-return {
-  message: 'User registered and logged in',
-  user,
-  token,
-};
-
-
+  @Put('profile')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async updateProfile(
+    @GetUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const updatedUser = await this.usersService.update(user.id, updateUserDto);
+    
+    return {
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        role: updatedUser.role,
+        profileCompleted: updatedUser.profileCompleted,
+      },
+    };
   }
 }

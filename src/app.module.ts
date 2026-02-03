@@ -1,28 +1,36 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-
-
+import { UsersModule } from './user/user.module';
+import { OtpModule } from './otp/otp.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'Saurabh@356',
-      database: 'firstnestapp',
-      autoLoadEntities: true,
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
-    UserModule,
-    AuthModule
+
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: Number(config.get('DB_PORT')),
+        username: config.get<string>('DB_USER'),
+        password: config.get<string>('DB_PASS'),
+        database: config.get<string>('DB_NAME'),
+        autoLoadEntities: true,
+        synchronize: config.get('NODE_ENV') !== 'production',
+        logging: true,
+      }),
+    }),
+
+    AuthModule,
+    UsersModule,
+    OtpModule,
+    EmailModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

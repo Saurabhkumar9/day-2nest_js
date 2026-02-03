@@ -1,14 +1,65 @@
-// auth/auth.controller.ts
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UsePipes,
+  ValidationPipe,
+  Get,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from '../user/dto/login-user.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { GetUser } from '../common/decorators/get-user.decorator';
+import { User } from '../user/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService) {}
+  constructor(private authService: AuthService) {}
+
+  @Post('register')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
+
+  @Post('verify-email')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+    return this.authService.verifyEmail(verifyEmailDto);
+  }
+
+  @Post('resend-verification')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async resendVerification(@Body() body: { email: string }) {
+    return this.authService.resendVerificationOtp(body.email);
+  }
 
   @Post('login')
-  login(@Body() dto: LoginUserDto) {
-    return this.auth.login(dto.email, dto.password);
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+
+  @Post('forgot-password')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('reset-password')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@GetUser() user: User) {
+    return this.authService.logout(user.id);
   }
 }
