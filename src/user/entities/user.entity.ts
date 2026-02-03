@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Product } from '../../product/entities/product.entity';
 
 @Entity('users')
 export class User {
@@ -49,6 +51,9 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Product, product => product.user)
+  products: Product[];
 
   @BeforeInsert()
   @BeforeUpdate()
