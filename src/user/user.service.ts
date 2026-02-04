@@ -20,6 +20,7 @@ export class UsersService {
 
   /* ================= CREATE USER ================= */
 
+  
   async create(createUserDto: CreateUserDto): Promise<User> {
     const emailLower = createUserDto.email.toLowerCase().trim();
 
